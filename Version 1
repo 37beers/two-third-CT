@@ -1,0 +1,30 @@
+setwd("/Users/abeerobaid/desktop")
+data <- read.csv('TCR.txt', header= FALSE)
+data
+
+#find the lines where sample A1 is located
+x <- grep("A1\t", data[,1])
+#the first thing it finds is useless, so remove it 
+x <- x[-c(1,2)]
+
+CT <- function(a) {
+  cycle = c()
+  blue = c()
+  for (i in a) {   
+  well <- data[i,]
+  well <- unlist(strsplit(as.character(well), "\t"))
+  cycle <- c(cycle, well[2])
+  blue <- c( blue, as.numeric(well[3]) )
+  }
+  return(data.frame(as.numeric(cycle),as.numeric(blue)))
+}
+
+#Store the dataframe into a variable, and find the 2/3 fluorescent value
+frame <- CT(x)
+two.thirds <- (2*frame[which.max(frame[,2]),2]-frame[which.min(frame[,2]),2])/3
+
+#ploting and finding the CT value 
+plot(frame)
+fit4 <- lm(frame[,2]~poly(frame[,1],12,raw=TRUE))
+lines(frame[,1], predict(fit4, data.frame(x=frame[,2]), col="purple"))
+approx(frame[,2],frame[,1],xout=two.thirds)
