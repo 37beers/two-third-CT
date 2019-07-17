@@ -1,0 +1,50 @@
+#!/usr/bin/env Rscript
+
+#make sure you have the raw data in a csv format. Remove the first few lines but leave the header
+
+data <- read.csv('/Users/abeerobaid/desktop/Run 15/NN-run 11 TCR alpha and beta sequencing  15 July 2019- raw data.csv', header= TRUE)
+
+#I can't find a more elegant solution for getting the labels- I tried using unique but it seems to create a list of lists and I need just a simple list. 
+##I also tried using a dicitonary kind solution, but unlike python i can't add multiple values for each key... are at least I am not sure what the synthax is like in R
+
+
+labels <- paste(data[1:96,1])
+length <- length(labels)
+
+
+CT <- function(a)
+  { 
+      
+  final_well <- c()
+  final_CT <- c()
+  
+  for (i in 1:length)
+    {
+      cycle = c()
+      blue = c()
+      well = c()
+      
+      if (i <= length)
+        {
+          x <- grep (paste(unlist(c("^",labels[i],"$")), collapse=''), data[,1])
+      
+           for (j in x)
+          
+          {
+            well <- c(well, labels[i])
+            cycle <- c(cycle, data[j,2])
+            blue <- c(blue, as.numeric(data[j,3]))
+           }
+      
+        frame <- data.frame(as.numeric(cycle),as.numeric(blue))
+        two.thirds <- (2*(blue[which.max(blue)] - blue[which.min(blue)]))/3
+        datas <- (approx(frame[,2],frame[,1],xout=two.thirds))
+        final_CT <- c(final_CT,(datas$y))
+        final_well <- c(final_well, labels[i])
+        }
+      }
+    final_frame <- data.frame(final_well, final_CT)
+    }
+
+frames <- CT(labels)
+frames
